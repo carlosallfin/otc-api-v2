@@ -1,8 +1,7 @@
-from dataclasses import fields
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
-import models,schemas,oauth2
-from database import get_db
+from .. import models,schemas,oauth2
+from ..database import get_db
 
 router=APIRouter(
     prefix="/banks",

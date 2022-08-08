@@ -2,7 +2,7 @@ from sqlalchemy import Column, ForeignKey,Integer,String,Boolean, Float, JSON, A
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
-from database import Base
+from .database import Base
 
 # Model for table nameed post in db. 
 # SQLalchemy wont modify tables if it finds a table named that way.

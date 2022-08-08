@@ -2,10 +2,10 @@
 # venv\scripts\activate.bat
 
 from fastapi import FastAPI
-import models
-from database import engine
-from routers import post,user,auth,vote, currency,accounts,banks
-from config import settings
+from . import models
+from .database import engine
+from .routers import post,user,auth,vote, currency,accounts,banks
+from .config import settings
 
 # Creates all of our models
 models.Base.metadata.create_all(bind=engine)
