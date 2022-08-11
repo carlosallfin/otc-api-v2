@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from .. import models,schemas,oauth2
 from ..database import get_db
 import json
+from typing import List
 
 router=APIRouter(
     prefix="/accounts",
@@ -42,10 +43,9 @@ def create_account(account: schemas.AccountCreate ,db: Session = Depends(get_db)
     db.refresh(new_account)
     return new_account
 
-@router.get("/{user_id}/{currency_id}", status_code=status.HTTP_200_OK)
+@router.get("/", status_code=status.HTTP_200_OK, response_model=List[schemas.Account])
 
-def get_user_accounts(user_id:int,currency_id:int, db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):
-    if current_user.id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "Not authorized to perform requested action")
-    accounts=db.query(models.Account).filter(models.Account.user_id==user_id).filter(models.Account.currency_id==currency_id).all()
+def get_user_accounts( db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):
+    uid=current_user.id
+    accounts=db.query(models.Account).filter(models.Account.user_id==uid).all()
     return accounts

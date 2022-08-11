@@ -3,6 +3,7 @@ from fastapi import Body, FastAPI, Response, status, HTTPException, Depends, API
 from sqlalchemy.orm import Session
 from .. import models,schemas,oauth2
 from ..database import get_db
+from typing import List
 
 router=APIRouter(
     prefix="/currencies",
@@ -21,4 +22,9 @@ def create_currency(currency: schemas.CurrencyCreate ,db: Session = Depends(get_
     db.refresh(new_currency)
 
     return new_currency
+
+@router.get("/",status_code=status.HTTP_200_OK, response_model=List[schemas.Currency])
+def get_currencies(db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):
+    results=db.query(models.Currency).all()
+    return results
 

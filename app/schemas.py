@@ -3,6 +3,8 @@ from typing import Optional, Dict
 from pydantic import BaseModel, EmailStr, conint, conlist, Json
 from datetime import datetime
 
+from .models import Currency
+
 class PostBase(BaseModel):
     title:str
     content:str
@@ -134,6 +136,16 @@ class Users(BaseModel):
     available_balance: float 
     class Config:
         orm_mode=True
+
+class Banks(BankCreate):
+    id: int
+
+class Account(AccountCreate):
+    id: int
+
+class Currency(CurrencyCreate):
+    id: int
+
 
 
 

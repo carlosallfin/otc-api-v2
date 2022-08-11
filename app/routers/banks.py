@@ -2,6 +2,7 @@ from fastapi import Body, FastAPI, Response, status, HTTPException, Depends, API
 from sqlalchemy.orm import Session
 from .. import models,schemas,oauth2
 from ..database import get_db
+from typing import List
 
 router=APIRouter(
     prefix="/banks",
@@ -10,13 +11,17 @@ router=APIRouter(
 
 #ORM create account
 # @router.get("/", status_code=status.HTTP_201_CREATED,response_model=schemas.AccountCreate)
-@router.get("/", status_code=status.HTTP_200_OK)
+@router.get("/", status_code=status.HTTP_200_OK, response_model=List[schemas.Banks])
 
-def get_account(account: schemas.AccountCreate ,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):
-    currencies=db.query(models.Currency).filter(models.Currency.id==account.currency_id).first()
-    currency_data = currencies.input_fields
-    account_input_fields=account.input_fields
-    return [currency_data,account_input_fields]
+def get_all(db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):
+    banks=db.query(models.Bank).all()
+    return banks
+
+@router.get("/{currency_id}", status_code=status.HTTP_200_OK, response_model=List[schemas.Banks])
+
+def get_all_by_currency(currency_id:int, db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):
+    banks=db.query(models.Bank).filter(models.Bank.currency_id==currency_id).all()
+    return banks
 
 @router.post("/", status_code=status.HTTP_201_CREATED,response_model=schemas.BankCreate)
 
