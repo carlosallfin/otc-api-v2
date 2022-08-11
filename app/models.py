@@ -73,7 +73,8 @@ class Order(Base):
     created_at = Column(TIMESTAMP(timezone=True),nullable=False,server_default=text('now()'))
     owner_id = Column(Integer, nullable = False)
     account_id = Column(Integer, nullable = False)
-
+    currency_id = Column(Integer, nullable = False)
+    
 class Trade(Base):
     __tablename__='trades'
     id = Column(Integer,primary_key=True,nullable=False)

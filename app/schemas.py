@@ -1,3 +1,4 @@
+from locale import currency
 from typing import Optional, Dict
 from pydantic import BaseModel, EmailStr, conint, conlist, Json
 from datetime import datetime
@@ -103,3 +104,37 @@ class BankCreate(BaseModel):
     currency_id: int
     class Config:
         orm_mode=True
+
+class OrderCreate(BaseModel):
+    type: str
+    amount: float
+    exchange_rate: float    
+    life_time: float
+    account_id: float
+    class Config:
+        orm_mode=True
+
+class OrderOut(BaseModel):
+    id: int
+    type: str
+    amount: float
+    exchange_rate: float
+    currency_id: int
+    class Config:
+        orm_mode=True
+
+class OrdersOut(BaseModel):
+    Order: OrderOut
+    available_balance: float 
+    class Config:
+        orm_mode=True
+
+class Users(BaseModel):
+    User: UserOut
+    available_balance: float 
+    class Config:
+        orm_mode=True
+
+
+
+

@@ -4,7 +4,7 @@
 from fastapi import FastAPI
 from . import models
 from .database import engine
-from .routers import post,user,auth,vote, currency,accounts,banks
+from .routers import post,user,auth,vote, currency,accounts,banks, order
 from .config import settings
 
 # Creates all of our models
@@ -18,6 +18,7 @@ app.include_router(vote.router)
 app.include_router(currency.router)
 app.include_router(accounts.router)
 app.include_router(banks.router)
+app.include_router(order.router)
 
 @app.get("/")
 def root():
