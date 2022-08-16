@@ -13,7 +13,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app=FastAPI()
 
-origins=["http://otcrsv.livingcodestudio.com/","http://207.244.246.57","https://otcrsv.livingcodestudio.com/","https://207.244.246.57"]
+origins=["http://otcrsv.livingcodestudio.com/","http://otcrsv.livingcodestudio.com","http://localhost:3000","http://localhost","http://localhost:3000/","https://207.244.246.57","http://207.244.246.57"]
 
 app.add_middleware(
     CORSMiddleware,
