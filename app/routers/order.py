@@ -186,7 +186,7 @@ def create_orders(order: schemas.OrderCreate, db: Session = Depends(get_db), cur
         order_currency_id=account_out.currency_id
         bank_id=account_out.bank_id
     if current_user.role_id==1:
-        collaterals=db.query(models.User, func.sum(models.Collateral.amount)).filter(models.User.id==current_user.id).join(models.Collateral, models.Collateral.owner_id==models.User.id, isouter=True).group_by(models.User.id).first()
+        collaterals=db.query(models.User, func.sum(models.Collateral.amount).label('collat_sum')).filter(models.User.id==current_user.id).join(models.Collateral, models.Collateral.owner_id==models.User.id, isouter=True).group_by(models.User.id).first()
         orders=db.query(models.User, func.sum(models.Order.amount).label('orders_sum')).filter(models.User.id==current_user.id).filter(models.Order.status=="active").join(models.Order, models.Order.owner_id==models.User.id, isouter=True).group_by(models.User.id).first()
         if orders is None:
             sumorder=0.00
@@ -194,7 +194,7 @@ def create_orders(order: schemas.OrderCreate, db: Session = Depends(get_db), cur
             sumorder=orders.orders_sum
         if sumorder is None:
             sumorder=0.00
-        sumcollat=collaterals.balance
+        sumcollat=collaterals.collat_sum
         if sumcollat is None:
             sumcollat=0.00
         balance=sumcollat-sumorder
