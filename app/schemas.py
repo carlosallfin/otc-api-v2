@@ -1,6 +1,6 @@
 from locale import currency
-from typing import Optional, Dict
-from pydantic import BaseModel, EmailStr, conint, conlist, Json
+from typing import List, Optional, Dict
+from pydantic import BaseModel, EmailStr, conint, conlist
 from datetime import datetime
 
 from .models import Currency
@@ -112,9 +112,19 @@ class OrderCreate(BaseModel):
     amount: float
     exchange_rate: float    
     life_time: float
-    account_id: float
+    account_id_in: int
+    account_id_out: int
     class Config:
         orm_mode=True
+
+class TradeOut(BaseModel):
+    id: int
+    type: str
+    amount: float
+    exchande_rate: float
+    status: str
+    created_at: str
+
 
 class OrderOut(BaseModel):
     id: int
@@ -122,6 +132,8 @@ class OrderOut(BaseModel):
     amount: float
     exchange_rate: float
     currency_id: int
+    created_at: datetime
+    life_time: float
     class Config:
         orm_mode=True
 
@@ -130,6 +142,16 @@ class OrdersOut(BaseModel):
     available_balance: float 
     class Config:
         orm_mode=True
+
+class OrdersOutTrades(OrderOut):
+    trades: List[TradeOut]
+
+class OrdersOutUser(BaseModel):
+    Order: OrdersOutTrades
+    available_balance: float 
+    class Config:
+        orm_mode=True
+    
 
 class Users(BaseModel):
     User: UserOut

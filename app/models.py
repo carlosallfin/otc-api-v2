@@ -64,15 +64,17 @@ class Bank(Base):
 class Order(Base):
     __tablename__='orders'
     id = Column(Integer,primary_key=True,nullable=False)
+    owner_id = Column(Integer, nullable = False)
     type = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
-    current_amount = Column(Float, nullable=False, server_default=text('0'))
     exchange_rate = Column(Float, nullable=False)
     status = Column(String, nullable=False)
     life_time = Column(Float, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),nullable=False,server_default=text('now()'))
-    owner_id = Column(Integer, nullable = False)
-    account_id = Column(Integer, nullable = False)
+    account_id_in = Column(Integer, nullable = False)
+    account_id_out = Column(Integer, nullable = False)
+    bank_id = Column(Integer, nullable = False)
+    owner_type=Column(Integer, nullable = False)
     currency_id = Column(Integer, nullable = False)
     
 class Trade(Base):
@@ -80,11 +82,13 @@ class Trade(Base):
     id = Column(Integer,primary_key=True,nullable=False)
     type = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
+    fiat_amount = Column(Float, nullable=False)
     exchange_rate = Column(Float, nullable=False)
     status = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),nullable=False,server_default=text('now()'))
     owner_id = Column(Integer, nullable = False)
-    account_id = Column(Integer, nullable = False)
+    account_id_in = Column(Integer, nullable = False)
+    account_id_out = Column(Integer, nullable = False)
     order_id = Column(Integer, nullable = False)
 
 class Payment(Base):
