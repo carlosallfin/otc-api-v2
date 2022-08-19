@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from . import models
 from .database import engine
-from .routers import post,user,auth,vote, currency,accounts,banks, order
+from .routers import post,user,auth,vote, currency,accounts,banks, order, trade
 from .config import settings
 
 # Creates all of our models
@@ -31,6 +31,7 @@ app.include_router(currency.router)
 app.include_router(accounts.router)
 app.include_router(banks.router)
 app.include_router(order.router)
+app.include_router(trade.router)
 
 @app.get("/")
 def root():

@@ -90,6 +90,7 @@ class Trade(Base):
     account_id_in = Column(Integer, nullable = False)
     account_id_out = Column(Integer, nullable = False)
     order_id = Column(Integer, nullable = False)
+    currency_id= Column(Integer, nullable = False)
 
 class Payment(Base):
     __tablename__='payments'

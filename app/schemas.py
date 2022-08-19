@@ -116,6 +116,15 @@ class OrderCreate(BaseModel):
     class Config:
         orm_mode=True
 
+class TradeCreate(BaseModel):
+    order_id: int
+    amount: float
+    exchange_rate: float
+    account_id_in: int
+    account_id_out: int
+    class Config:
+        orm_mode=True
+
 class TradeOut(BaseModel):
     id: int
     owner_id: int
@@ -129,6 +138,7 @@ class TradeOut(BaseModel):
     account_id_in: int
     account_id_out: int
     created_at: datetime
+    currency_id: int
     class Config:
         orm_mode=True
 
