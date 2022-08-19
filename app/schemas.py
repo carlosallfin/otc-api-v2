@@ -94,7 +94,6 @@ class UserOutColl(BaseModel):
         orm_mode=True
 
 class AccountCreate(BaseModel):
-    user_id:int
     bank_id: int
     currency_id: int
     input_fields: Dict
@@ -119,21 +118,64 @@ class OrderCreate(BaseModel):
 
 class TradeOut(BaseModel):
     id: int
+    owner_id: int
+    order_id: int
     type: str
     amount: float
-    exchande_rate: float
+    fiat_amount: float
+    exchange_rate: float
     status: str
-    created_at: str
+    owner_id: int
+    account_id_in: int
+    account_id_out: int
+    created_at: datetime
+    class Config:
+        orm_mode=True
+
 
 
 class OrderOut(BaseModel):
     id: int
+    owner_id: int
     type: str
     amount: float
     exchange_rate: float
+    status: str
     currency_id: int
+    account_id_in: int
+    account_id_out: int
+    bank_id: int
+    owner_type: int
     created_at: datetime
     life_time: float
+    class Config:
+        orm_mode=True
+
+class OrderUserOut(OrderOut):
+    trades: List[TradeOut]
+
+class OrdersPagination(BaseModel):
+    page: int
+    total_items: int
+    total_pages: int
+    page_size: int
+    data: List[OrderOut]
+    class Config:
+        orm_mode=True
+
+class OrdersUserPagination(BaseModel):
+    page: int
+    total_items: int
+    total_pages: int
+    page_size: int
+    data: List[OrderUserOut]
+    class Config:
+        orm_mode=True
+
+
+class OrderSeparate(BaseModel):
+    buy: OrdersPagination
+    sell: OrdersPagination
     class Config:
         orm_mode=True
 

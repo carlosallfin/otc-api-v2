@@ -37,7 +37,7 @@ def create_account(account: schemas.AccountCreate ,db: Session = Depends(get_db)
     if errors_in_fields:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail= f"Errors in fields: {errors_in_fields}")
     account.input_fields=account_input_fields
-    new_account=models.Account(**account.dict())
+    new_account=models.Account(user_id=current_user.id,**account.dict())
     db.add(new_account)
     db.commit()
     db.refresh(new_account)

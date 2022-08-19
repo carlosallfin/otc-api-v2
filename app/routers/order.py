@@ -20,120 +20,122 @@ router=APIRouter(
 #     return {'data':posts} 
 
 # ORM get all
-@router.get("/",status_code=status.HTTP_200_OK)
+@router.get("/",status_code=status.HTTP_200_OK, response_model=schemas.OrdersPagination)
 def get_orders(db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
-    currency: int=0, bank:int=0, separate: bool=False,page: int=1, limit:int=10, page_buy: int=1, page_sell: int=1, search_type: str="pli"):
-    if separate==False:
-        if search_type=="pli":
-            if currency==0 and bank==0:
-                results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-                total_items=db.query(models.Order).count()
-            if currency!=0 and bank==0:
-                results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-                total_items=db.query(models.Order).filter(models.Order.currency_id==currency).count()
-            if currency!=0 and bank != 0:
-                results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-                total_items=db.query(models.Order).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
-        else:
-            if currency==0 and bank==0:
-                results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-                total_items=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).count()
-            if currency!=0 and bank==0:
-                results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-                total_items=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).count()
-            if currency!=0 and bank != 0:
-                results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-                total_items=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
-        
-        if currency==0 and bank != 0:
-            raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail= "You must filter by currency first to filter by bank")
-        orders=[]
-        for r in results:
-            order=r.Order
-            if search_type=="user" and order.owner_id!=current_user.id and order.owner_type==2:
-                total_items -= 1
-                continue
-            order.availabe=r.available_balance
-            orders.append(order)
-        page_size=len(orders)        
-        results= {'page': page,
-            'total_items':total_items,
-            'total_pages': math.ceil(total_items/limit),
-            'page_size':page_size,
-            'data':orders}
+    currency: int=0, bank:int=0,page: int=1, limit:int=10, search_type: str="pli"):
+    if search_type=="pli":
+        if currency==0 and bank==0:
+            results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
+            total_items=db.query(models.Order).count()
+        if currency!=0 and bank==0:
+            results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
+            total_items=db.query(models.Order).filter(models.Order.currency_id==currency).count()
+        if currency!=0 and bank != 0:
+            results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
+            total_items=db.query(models.Order).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
     else:
-        if search_type=="pli":
-            if currency==0 and bank==0:
-                results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="buy").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
-                total_items_buy=db.query(models.Order).filter(models.Order.type=="buy").count()
-                results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="sell").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
-                total_items_sell=db.query(models.Order).filter(models.Order.type=="sell").count()
-            if currency!=0 and bank==0:
-                results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
-                total_items_buy=db.query(models.Order).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).count()
-                results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
-                total_items_sell=db.query(models.Order).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).count()
-            if currency!=0 and bank != 0:
-                results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
-                total_items_buy=db.query(models.Order).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
-                results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
-                total_items_sell=db.query(models.Order).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.type=="sell").filter(models.Order.bank_id==bank).count()
-        else:
-            if currency==0 and bank==0:
-                results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
-                total_items_buy=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").count()
-                results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
-                total_items_sell=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").count()
-            if currency!=0 and bank==0:
-                results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
-                total_items_buy=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).count()
-                results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
-                total_items_sell=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).count()
-            if currency!=0 and bank != 0:
-                results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
-                total_items_buy=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
-                results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
-                total_items_sell=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.type=="sell").filter(models.Order.bank_id==bank).count()
-        if currency==0 and bank != 0:
-            raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail= "You must filter by currency first to filter by bank")
-        orders_buy=[]
-        for r in results_buy:
-            order=r.Order
-            if search_type=="user" and order.owner_id!=current_user.id and order.owner_type==2:
-                total_items_buy-=1
-                continue
-            order.availabe=r.available_balance
-            orders_buy.append(order)
-        orders_sell=[]
-        for r in results_sell:
-            order=r.Order
-            if search_type=="user" and order.owner_id!=current_user.id and order.owner_type==2:
-                total_items_sell-=1
-                continue
-            order.availabe=r.available_balance
-            orders_sell.append(order)
-        page_size_buy=len(orders_buy)
-        page_size_sell=len(orders_sell)
-        results= {"buy":{
-                'page': page_buy,
-                'total_items':total_items_buy,
-                'total_pages': math.ceil(total_items_buy/limit),
-                'page_size':page_size_buy,
-                'data':orders_buy},
-                "sell":{
-                'page': page_sell,
-                'total_items':total_items_sell,
-                'total_pages': math.ceil(total_items_sell/limit),
-                'page_size':page_size_sell,
-                'data':orders_sell
-                }
-            }
-            
-
+        if currency==0 and bank==0:
+            results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
+            total_items=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).count()
+        if currency!=0 and bank==0:
+            results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
+            total_items=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).count()
+        if currency!=0 and bank != 0:
+            results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
+            total_items=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
+    
+    if currency==0 and bank != 0:
+        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail= "You must filter by currency first to filter by bank")
+    orders=[]
+    for r in results:
+        order=r.Order
+        if search_type=="user" and order.owner_id!=current_user.id and order.owner_type==2:
+            total_items -= 1
+            continue
+        order.availabe=r.available_balance
+        orders.append(order)
+    page_size=len(orders)        
+    results= {'page': page,
+        'total_items':total_items,
+        'total_pages': math.ceil(total_items/limit),
+        'page_size':page_size,
+        'data':orders}
     return results
 
+@router.get("/separate",status_code=status.HTTP_200_OK, response_model=schemas.OrderSeparate)
+def get_orders_separate(db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
+    currency: int=0, bank:int=0, limit:int=10, page_buy: int=1, page_sell: int=1, search_type: str="pli"):
+    if search_type=="pli":
+        if currency==0 and bank==0:
+            results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="buy").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
+            total_items_buy=db.query(models.Order).filter(models.Order.type=="buy").count()
+            results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="sell").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
+            total_items_sell=db.query(models.Order).filter(models.Order.type=="sell").count()
+        if currency!=0 and bank==0:
+            results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
+            total_items_buy=db.query(models.Order).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).count()
+            results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
+            total_items_sell=db.query(models.Order).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).count()
+        if currency!=0 and bank != 0:
+            results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
+            total_items_buy=db.query(models.Order).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
+            results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
+            total_items_sell=db.query(models.Order).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.type=="sell").filter(models.Order.bank_id==bank).count()
+    else:
+        if currency==0 and bank==0:
+            results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
+            total_items_buy=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").count()
+            results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
+            total_items_sell=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").count()
+        if currency!=0 and bank==0:
+            results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
+            total_items_buy=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).count()
+            results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
+            total_items_sell=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).count()
+        if currency!=0 and bank != 0:
+            results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
+            total_items_buy=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
+            results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
+            total_items_sell=db.query(models.Order).filter(or_(models.Order.owner_id==current_user.id, models.Order.owner_type!=2)).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.type=="sell").filter(models.Order.bank_id==bank).count()
+    if currency==0 and bank != 0:
+        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail= "You must filter by currency first to filter by bank")
+    orders_buy=[]
+    for r in results_buy:
+        order=r.Order
+        if search_type=="user" and order.owner_id!=current_user.id and order.owner_type==2:
+            total_items_buy-=1
+            continue
+        order.availabe=r.available_balance
+        orders_buy.append(order)
+    orders_sell=[]
+    for r in results_sell:
+        order=r.Order
+        if search_type=="user" and order.owner_id!=current_user.id and order.owner_type==2:
+            total_items_sell-=1
+            continue
+        order.availabe=r.available_balance
+        orders_sell.append(order)
+    page_size_buy=len(orders_buy)
+    page_size_sell=len(orders_sell)
+    results= {"buy":{
+            'page': page_buy,
+            'total_items':total_items_buy,
+            'total_pages': math.ceil(total_items_buy/limit),
+            'page_size':page_size_buy,
+            'data':orders_buy},
+            "sell":{
+            'page': page_sell,
+            'total_items':total_items_sell,
+            'total_pages': math.ceil(total_items_sell/limit),
+            'page_size':page_size_sell,
+            'data':orders_sell
+            }
+        }
+        
+
+    return results
 #Get all from user
-@router.get("/{user_id}",status_code=status.HTTP_200_OK)
+@router.get("/{user_id}",status_code=status.HTTP_200_OK, response_model=schemas.OrdersUserPagination)
 def get_orders(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
     page: int=1, limit:int=10):
     if user_id != current_user.id:
