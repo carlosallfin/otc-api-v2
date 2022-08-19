@@ -173,6 +173,15 @@ class OrdersPagination(BaseModel):
     class Config:
         orm_mode=True
 
+class TradesPagination(BaseModel):
+    page: int
+    total_items: int
+    total_pages: int
+    page_size: int
+    data: List[TradeOut]
+    class Config:
+        orm_mode=True
+
 class OrdersUserPagination(BaseModel):
     page: int
     total_items: int

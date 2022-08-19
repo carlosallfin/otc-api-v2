@@ -1,5 +1,7 @@
 import math
 from operator import or_
+from os import stat
+from pyexpat import model
 from typing import List, Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
@@ -12,115 +14,31 @@ router=APIRouter(
     tags=['Trades']
 )
 
-
-# ORM get all
-@router.post("/test",status_code=status.HTTP_201_CREATED)
-def create_trades(db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
-    currency: int=0, bank:int=0, separate: bool=False,page: int=1, limit:int=10, page_buy: int=1, page_sell: int=1):
-    if separate==False:
-        if currency==0 and bank==0:
-            results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-            total_items=db.query(models.Order).count()
-        if currency!=0 and bank==0:
-            results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-            total_items=db.query(models.Order).filter(models.Order.currency_id==currency).count()
-        if currency!=0 and bank != 0:
-            results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-            total_items=db.query(models.Order).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
-        if currency==0 and bank != 0:
-            raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail= "You must filter by currency first to filter by bank")
-        orders=[]
-        for r in results:
-            order=r.Order
-            order.availabe=r.available_balance
-            orders.append(order)
-        page_size=len(orders)
-        for o in orders:
-            trades=db.query(models.Trade).filter(models.Trade.order_id==o.id).all()
-            o.trades=trades
-        
-        results= {'page': page,
-            'total_items':total_items,
-            'total_pages': math.ceil(total_items/limit),
-            'page_size':page_size,
-            'data':orders}
-    else:
-        if currency==0 and bank==0:
-            results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="buy").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
-            total_items_buy=db.query(models.Order).filter(models.Order.type=="buy").count()
-            results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="sell").join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
-            total_items_sell=db.query(models.Order).filter(models.Order.type=="sell").count()
-        if currency!=0 and bank==0:
-            results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
-            total_items_buy=db.query(models.Order).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).count()
-            results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
-            total_items_sell=db.query(models.Order).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).count()
-        if currency!=0 and bank != 0:
-            results_buy=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate.desc()).limit(limit).offset((page_buy-1)*limit).all()
-            total_items_buy=db.query(models.Order).filter(models.Order.type=="buy").filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).count()
-            results_sell=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.type=="sell").filter(models.Order.currency_id==currency).filter(models.Order.bank_id==bank).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).order_by(models.Order.exchange_rate).limit(limit).offset((page_sell-1)*limit).all()
-            total_items_sell=db.query(models.Order).filter(models.Order.currency_id==currency).filter(models.Order.currency_id==currency).filter(models.Order.type=="sell").filter(models.Order.bank_id==bank).count()
-        if currency==0 and bank != 0:
-            raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail= "You must filter by currency first to filter by bank")
-        orders_buy=[]
-        for r in results_buy:
-            order=r.Order
-            order.availabe=r.available_balance
-            orders_buy.append(order)
-        orders_sell=[]
-        for r in results_sell:
-            order=r.Order
-            order.availabe=r.available_balance
-            orders_sell.append(order)
-        page_size_buy=len(orders_buy)
-        page_size_sell=len(orders_sell)
-        for o in orders_buy:
-            trades=db.query(models.Trade).filter(models.Trade.order_id==o.id).all()
-            o.trades=trades
-        for o in orders_sell:
-            trades=db.query(models.Trade).filter(models.Trade.order_id==o.id).all()
-            o.trades=trades
-        results= {"buy":{
-                'page': page_buy,
-                'total_items':total_items_buy,
-                'total_pages': math.ceil(total_items_buy/limit),
-                'page_size':page_size_buy,
-                'data':orders_buy},
-                "sell":{
-                'page': page_sell,
-                'total_items':total_items_sell,
-                'total_pages': math.ceil(total_items_sell/limit),
-                'page_size':page_size_sell,
-                'data':orders_sell
-                }
-            }
-            
-
-    return results
-
 #Get all from user
-@router.get("/{user_id}",status_code=status.HTTP_200_OK)
-def get_orders(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
-    page: int=1, limit:int=10):
+@router.get("/{user_id}",status_code=status.HTTP_200_OK, response_model=schemas.TradesPagination)
+def get_trades(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
+    page: int=1, limit:int=10, status: str="", currency_id: int=0):
     if user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "Not authorized to perform requested action")
-    total_items=db.query(models.Order).filter(models.Order.owner_id==user_id).count()
-    results=db.query(models.Order, (models.Order.amount-func.coalesce(func.sum(models.Trade.amount),0)).label('available_balance')).filter(models.Order.owner_id==user_id).join(models.Trade, models.Trade.order_id==models.Order.id, isouter=True).group_by(models.Order.id).limit(limit).offset((page-1)*limit).all()
-    orders=[]
-    for r in results:
-        order=r.Order
-        order.availabe=r.available_balance
-        orders.append(order)
-    page_size=len(orders)
-    for o in orders:
-        trades=db.query(models.Trade).filter(models.Trade.order_id==o.id).all()
-        o.trades=trades
-    
-    return {'page': page,
+    if status=="" and currency_id==0:
+        trades=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).count()
+    if status=="" and currency_id!=0:
+        trades=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).count()
+    if status!="" and currency_id==0:
+        trades=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).count()
+    if status!="" and currency_id!=0:
+        trades=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).count()
+    page_size=len(trades)
+    results= {'page': page,
         'total_items':total_items,
         'total_pages': math.ceil(total_items/limit),
         'page_size':page_size,
-        'data':orders}
+        'data':trades}
+    return results
 
 @router.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.TradeOut)
 def create_trade(trade: schemas.TradeCreate, db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):
@@ -188,7 +106,7 @@ def create_trade(trade: schemas.TradeCreate, db: Session = Depends(get_db), curr
         balance=sumcollat-sumorder-tradesum
         if balance<trade.amount:
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=f'User with id: {current_user.id} does not have enough balance')
-    new_trade=models.Trade(type=direction,currency_id=order.currency_id,owner_id=current_user.id,status='pending',fiat_amount=trade.amount*trade.exchange_rate,**trade.dict())
+    new_trade=models.Trade(order_owner_id=order.owner_id,type=direction,currency_id=order.currency_id,owner_id=current_user.id,status='pending',fiat_amount=trade.amount*trade.exchange_rate,**trade.dict())
     db.add(new_trade)
     db.commit()
     db.refresh(new_trade)

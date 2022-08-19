@@ -7,7 +7,7 @@ from typing import List
 
 router=APIRouter(
     prefix="/accounts",
-    tags=['accounts']
+    tags=['Accounts']
 )
 
 #ORM create account
