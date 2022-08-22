@@ -15,9 +15,10 @@ def login(user_credentials: OAuth2PasswordRequestForm=Depends() ,db: Session=Dep
         detail='User does not exist'
         logged=False
 
-    if user.active==False:
-        detail= 'User is inactive'
-        logged=False
+    if user:
+        if user.active==False:
+            detail= 'User is inactive'
+            logged=False
 
     if not utils.verify(user_credentials.password, user.password):
         detail= 'Invalid password'
