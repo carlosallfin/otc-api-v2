@@ -59,6 +59,8 @@ class UserLogin(BaseModel):
     password: str
 
 class Token(BaseModel):
+    logged: bool
+    detail: str
     access_token: str
     token_type: str
     user_data: Dict

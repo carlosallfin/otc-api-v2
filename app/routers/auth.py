@@ -25,11 +25,13 @@ def login(user_credentials: OAuth2PasswordRequestForm=Depends() ,db: Session=Dep
 
     if logged==False:
         access_token=''
+        token_type=''
         current_user={}
 
     else:
         access_token= oauth2.create_access_token(data={"user_id": user.id})
         detail='Success'
+        token_type='Bearer'
         current_user={
             "id":user.id,
             "name":user.name,
@@ -40,4 +42,4 @@ def login(user_credentials: OAuth2PasswordRequestForm=Depends() ,db: Session=Dep
         }
 
     
-    return {'logged':logged,detail:detail,"access_token":access_token, "token_type":"Bearer", "user_data":current_user}
+    return {'logged':logged,detail:detail,"access_token":access_token, "token_type":token_type, "user_data":current_user}
