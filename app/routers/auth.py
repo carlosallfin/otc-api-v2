@@ -29,6 +29,7 @@ def login(user_credentials: OAuth2PasswordRequestForm=Depends() ,db: Session=Dep
         current_user={}
 
     else:
+        logged=True
         access_token= oauth2.create_access_token(data={"user_id": user.id})
         detail='Success'
         token_type='Bearer'
