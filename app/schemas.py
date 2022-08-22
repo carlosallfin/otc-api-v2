@@ -29,11 +29,18 @@ class Post(PostBase):
     class Config:
         orm_mode=True
 
+class InputFieldsCurrency(BaseModel):
+    title: str
+    min: int
+    max: int
+    class Config:
+        orm_mode=True
+
 class CurrencyCreate(BaseModel):
     name:str
     slug: str
     symbol: str
-    input_fields: conlist(Dict,min_items=2)
+    input_fields: List[InputFieldsCurrency]
     class Config:
         orm_mode=True
 
