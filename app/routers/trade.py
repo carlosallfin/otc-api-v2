@@ -42,7 +42,7 @@ def get_trades(user_id: int,db: Session = Depends(get_db), current_user: int =De
 
 #Get all bids from user
 @router.get("/bids/{user_id}",status_code=status.HTTP_200_OK, response_model=schemas.TradesPagination)
-def get_trades(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
+def get_bids(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
     page: int=1, limit:int=10, status: str="", currency_id: int=0):
     if user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "Not authorized to perform requested action")
