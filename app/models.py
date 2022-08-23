@@ -79,6 +79,7 @@ class Trade(Base):
     account_id_out = Column(Integer, nullable = False)
     order_id = Column(Integer, nullable = False)
     order_owner_id=Column(Integer, nullable = False)
+    is_bid=Column(Integer, nullable = False)
     currency_id= Column(Integer, nullable = False)
 
 class Payment(Base):

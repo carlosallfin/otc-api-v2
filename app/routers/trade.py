@@ -14,24 +14,50 @@ router=APIRouter(
     tags=['Trades']
 )
 
-#Get all from user
+#Get all trades from user
 @router.get("/{user_id}",status_code=status.HTTP_200_OK, response_model=schemas.TradesPagination)
 def get_trades(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
     page: int=1, limit:int=10, status: str="", currency_id: int=0):
     if user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "Not authorized to perform requested action")
     if status=="" and currency_id==0:
-        trades=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).limit(limit).offset((page-1)*limit).all()
-        total_items=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).count()
+        trades=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).count()
     if status=="" and currency_id!=0:
-        trades=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
-        total_items=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).count()
+        trades=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).count()
     if status!="" and currency_id==0:
-        trades=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).limit(limit).offset((page-1)*limit).all()
-        total_items=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).count()
+        trades=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).count()
     if status!="" and currency_id!=0:
-        trades=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
-        total_items=db.query(models.Trade).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).count()
+        trades=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).count()
+    page_size=len(trades)
+    results= {'page': page,
+        'total_items':total_items,
+        'total_pages': math.ceil(total_items/limit),
+        'page_size':page_size,
+        'data':trades}
+    return results
+
+#Get all bids from user
+@router.get("/bids/{user_id}",status_code=status.HTTP_200_OK, response_model=schemas.TradesPagination)
+def get_trades(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
+    page: int=1, limit:int=10, status: str="", currency_id: int=0):
+    if user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "Not authorized to perform requested action")
+    if status=="" and currency_id==0:
+        trades=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).count()
+    if status=="" and currency_id!=0:
+        trades=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).count()
+    if status!="" and currency_id==0:
+        trades=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).count()
+    if status!="" and currency_id!=0:
+        trades=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
+        total_items=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).count()
     page_size=len(trades)
     results= {'page': page,
         'total_items':total_items,
@@ -106,7 +132,11 @@ def create_trade(trade: schemas.TradeCreate, db: Session = Depends(get_db), curr
         balance=sumcollat-sumorder-tradesum
         if balance<trade.amount:
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=f'User with id: {current_user.id} does not have enough balance')
-    new_trade=models.Trade(order_owner_id=order.owner_id,type=direction,currency_id=order.currency_id,owner_id=current_user.id,status='pending',fiat_amount=trade.amount*trade.exchange_rate,**trade.dict())
+    if order.exchange_rate==trade.exchange_rate:
+        bid=0
+    else:
+        bid=1
+    new_trade=models.Trade(is_bid=bid,order_owner_id=order.owner_id,type=direction,currency_id=order.currency_id,owner_id=current_user.id,status='pending',fiat_amount=trade.amount*trade.exchange_rate,**trade.dict())
     db.add(new_trade)
     db.commit()
     db.refresh(new_trade)
