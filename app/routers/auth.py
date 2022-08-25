@@ -42,5 +42,6 @@ def login(user_credentials: OAuth2PasswordRequestForm=Depends() ,db: Session=Dep
         access_token=''
         token_type=''
         current_user={}
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail= {'logged':logged, 'detail':detail,"access_token":access_token, "token_type":token_type, "user_data":current_user})
     
     return {'logged':logged, 'detail':detail,"access_token":access_token, "token_type":token_type, "user_data":current_user}
