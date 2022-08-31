@@ -14,19 +14,19 @@ router=APIRouter(
 #Get all trades from user
 @router.get("/{user_id}",status_code=status.HTTP_200_OK, response_model=schemas.TradesPagination)
 def get_trades(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
-    page: int=1, limit:int=10, status: str="", currency_id: int=0):
+    page: int=1, limit:int=10, trade_status: str="", currency_id: int=0):
     if user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "Not authorized to perform requested action")
-    if status=="" and currency_id==0:
+    if trade_status=="" and currency_id==0:
         trades=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).limit(limit).offset((page-1)*limit).all()
         total_items=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).count()
-    if status=="" and currency_id!=0:
+    if trade_status=="" and currency_id!=0:
         trades=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
         total_items=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).count()
-    if status!="" and currency_id==0:
+    if trade_status!="" and currency_id==0:
         trades=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).limit(limit).offset((page-1)*limit).all()
         total_items=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).count()
-    if status!="" and currency_id!=0:
+    if trade_status!="" and currency_id!=0:
         trades=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
         total_items=db.query(models.Trade).filter(models.Trade.is_bid==0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).count()
     page_size=len(trades)
@@ -40,19 +40,19 @@ def get_trades(user_id: int,db: Session = Depends(get_db), current_user: int =De
 #Get all bids from user
 @router.get("/bids/{user_id}",status_code=status.HTTP_200_OK, response_model=schemas.TradesPagination)
 def get_bids(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
-    page: int=1, limit:int=10, status: str="", currency_id: int=0):
+    page: int=1, limit:int=10, bid_status: str="", currency_id: int=0):
     if user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "Not authorized to perform requested action")
-    if status=="" and currency_id==0:
+    if bid_status=="" and currency_id==0:
         trades=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).limit(limit).offset((page-1)*limit).all()
         total_items=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).count()
-    if status=="" and currency_id!=0:
+    if bid_status=="" and currency_id!=0:
         trades=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
         total_items=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.currency_id==currency_id).count()
-    if status!="" and currency_id==0:
+    if bid_status!="" and currency_id==0:
         trades=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).limit(limit).offset((page-1)*limit).all()
         total_items=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).count()
-    if status!="" and currency_id!=0:
+    if bid_status!="" and currency_id!=0:
         trades=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).limit(limit).offset((page-1)*limit).all()
         total_items=db.query(models.Trade).filter(models.Trade.is_bid!=0).filter(or_(models.Trade.owner_id==user_id,models.Trade.order_owner_id==user_id)).filter(models.Trade.status==status).filter(models.Trade.currency_id==currency_id).count()
     page_size=len(trades)
@@ -115,7 +115,7 @@ def create_trade(trade: schemas.TradeCreate, db: Session = Depends(get_db), curr
             sumorder=orders.orders_sum
             if sumorder is None:
                 sumorder=0.00
-        if collaterals in None:
+        if collaterals is None:
             sumcollat=0
         else:
             sumcollat=collaterals.collateral_sum

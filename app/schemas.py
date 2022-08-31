@@ -109,6 +109,9 @@ class AccountCreate(BaseModel):
     class Config:
         orm_mode=True
 
+class AccountOut(AccountCreate):
+    id: int
+
 class BankCreate(BaseModel):
     name: str
     currency_id: int
@@ -144,8 +147,8 @@ class TradeOut(BaseModel):
     exchange_rate: float
     status: str
     owner_id: int
-    account_id_in: int
-    account_id_out: int
+    account_in: AccountOut
+    account_out: AccountOut
     created_at: datetime
     currency_id: int
     class Config:
@@ -161,8 +164,8 @@ class OrderOut(BaseModel):
     exchange_rate: float
     status: str
     currency_id: int
-    account_id_in: int
-    account_id_out: int
+    account_in: AccountOut
+    account_out: AccountOut
     bank_id: int
     owner_type: int
     created_at: datetime

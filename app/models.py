@@ -59,8 +59,10 @@ class Order(Base):
     status = Column(String, nullable=False)
     life_time = Column(Float, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),nullable=False,server_default=text('now()'))
-    account_id_in = Column(Integer, nullable = False)
-    account_id_out = Column(Integer, nullable = False)
+    account_id_in = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    account_id_out = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    account_in = relationship("Account", foreign_keys=[account_id_in])
+    account_out = relationship("Account", foreign_keys=[account_id_out])
     bank_id = Column(Integer, nullable = False)
     owner_type=Column(Integer, nullable = False)
     currency_id = Column(Integer, nullable = False)
@@ -75,8 +77,10 @@ class Trade(Base):
     status = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),nullable=False,server_default=text('now()'))
     owner_id = Column(Integer, nullable = False)
-    account_id_in = Column(Integer, nullable = False)
-    account_id_out = Column(Integer, nullable = False)
+    account_id_in = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    account_id_out = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    account_in = relationship("Account", foreign_keys=[account_id_in])
+    account_out = relationship("Account", foreign_keys=[account_id_out])
     order_id = Column(Integer, nullable = False)
     order_owner_id=Column(Integer, nullable = False)
     is_bid=Column(Integer, nullable = False)
@@ -85,13 +89,11 @@ class Trade(Base):
 class Payment(Base):
     __tablename__='payments'
     id = Column(Integer,primary_key=True,nullable=False)
-    type = Column(String, nullable=False)
-    amount = Column(Float, nullable=False)
-    exchange_rate = Column(Float, nullable=False)
-    status = Column(String, nullable=False)
-    created_at = Column(TIMESTAMP(timezone=True),nullable=False,server_default=text('now()'))
-    bank_id = Column(Integer, nullable = False)
     trade_id = Column(Integer, nullable = False)
+    rsv_confirmation=Column(String)
+    fiat_confirmation=Column(String)
+    rsv_status=Column(String, nullable = False)
+    fiat_status=Column(String, nullable = False)
 
 class Collateral(Base):
     __tablename__='collaterals'

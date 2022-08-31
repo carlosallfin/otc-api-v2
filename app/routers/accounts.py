@@ -43,7 +43,7 @@ def create_account(account: schemas.AccountCreate ,db: Session = Depends(get_db)
     db.refresh(new_account)
     return new_account
 
-@router.get("/", status_code=status.HTTP_200_OK, response_model=List[schemas.Account])
+@router.get("/", status_code=status.HTTP_200_OK, response_model=List[schemas.AccountOut])
 
 def get_user_accounts( db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):
     uid=current_user.id
