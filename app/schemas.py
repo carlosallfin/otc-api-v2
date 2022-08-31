@@ -235,9 +235,6 @@ class Users(BaseModel):
 class Banks(BankCreate):
     id: int
 
-class Account(AccountCreate):
-    id: int
-
 class Currency(CurrencyCreate):
     id: int
 
