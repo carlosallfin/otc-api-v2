@@ -39,8 +39,10 @@ class Account(Base):
     __tablename__='accounts'
     id = Column(Integer,primary_key=True,nullable=False)
     user_id = Column(Integer, nullable=False)
-    bank_id = Column(Integer, nullable=False)
-    currency_id = Column(Integer, nullable=False)
+    bank_id = Column(Integer, ForeignKey("banks.id"), nullable=False)
+    bank_info=relationship("Bank", foreign_keys=[bank_id])
+    currency_id = Column(Integer, ForeignKey("currencies.id"), nullable=False)
+    currency_info = relationship("Currency", foreign_keys=[currency_id])
     input_fields = Column(JSON, nullable=False)
 
 class Bank(Base):
@@ -63,6 +65,7 @@ class Order(Base):
     account_id_out = Column(Integer, ForeignKey("accounts.id"), nullable=False)
     account_in = relationship("Account", foreign_keys=[account_id_in])
     account_out = relationship("Account", foreign_keys=[account_id_out])
+    trades = relationship("Trade",back_populates="order")
     bank_id = Column(Integer, nullable = False)
     owner_type=Column(Integer, nullable = False)
     currency_id = Column(Integer, nullable = False)
@@ -81,7 +84,9 @@ class Trade(Base):
     account_id_out = Column(Integer, ForeignKey("accounts.id"), nullable=False)
     account_in = relationship("Account", foreign_keys=[account_id_in])
     account_out = relationship("Account", foreign_keys=[account_id_out])
-    order_id = Column(Integer, nullable = False)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    order = relationship("Order", back_populates="trades")
+    order_info = relationship("Order", foreign_keys=[order_id])
     order_owner_id=Column(Integer, nullable = False)
     is_bid=Column(Integer, nullable = False)
     currency_id= Column(Integer, nullable = False)

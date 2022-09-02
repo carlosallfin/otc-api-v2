@@ -20,7 +20,7 @@ router=APIRouter(
 #     return {'data':posts} 
 
 # ORM get all
-@router.get("/",status_code=status.HTTP_200_OK, response_model=schemas.OrdersPagination)
+@router.get("/",status_code=status.HTTP_200_OK, response_model=schemas.OrdersBookPagination)
 def get_orders(db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),
     currency: int=0, bank:int=0,page: int=1, limit:int=10, search_type: str="pli"):
     if search_type=="pli":
@@ -52,7 +52,7 @@ def get_orders(db: Session = Depends(get_db), current_user: int =Depends(oauth2.
         if search_type=="user" and order.owner_id!=current_user.id and order.owner_type==2:
             total_items -= 1
             continue
-        order.availabe=r.available_balance
+        order.available=r.available_balance
         orders.append(order)
     page_size=len(orders)        
     results= {'page': page,
@@ -105,7 +105,7 @@ def get_orders_separate(db: Session = Depends(get_db), current_user: int =Depend
         if search_type=="user" and order.owner_id!=current_user.id and order.owner_type==2:
             total_items_buy-=1
             continue
-        order.availabe=r.available_balance
+        order.available=r.available_balance
         orders_buy.append(order)
     orders_sell=[]
     for r in results_sell:
@@ -113,7 +113,7 @@ def get_orders_separate(db: Session = Depends(get_db), current_user: int =Depend
         if search_type=="user" and order.owner_id!=current_user.id and order.owner_type==2:
             total_items_sell-=1
             continue
-        order.availabe=r.available_balance
+        order.available=r.available_balance
         orders_sell.append(order)
     page_size_buy=len(orders_buy)
     page_size_sell=len(orders_sell)
@@ -145,12 +145,9 @@ def get_orders(user_id: int,db: Session = Depends(get_db), current_user: int =De
     orders=[]
     for r in results:
         order=r.Order
-        order.availabe=r.available_balance
+        order.available=r.available_balance
         orders.append(order)
     page_size=len(orders)
-    for o in orders:
-        trades=db.query(models.Trade).filter(models.Trade.order_id==o.id).all()
-        o.trades=trades
     
     return {'page': page,
         'total_items':total_items,

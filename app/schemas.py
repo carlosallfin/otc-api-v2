@@ -44,6 +44,20 @@ class CurrencyCreate(BaseModel):
     class Config:
         orm_mode=True
 
+class CurrencyOut(BaseModel):
+    id: int
+    name:str
+    slug: str
+    symbol: str
+    class Config:
+        orm_mode=True
+
+class BankOut(BaseModel):
+    id: int
+    name:str
+    class Config:
+        orm_mode=True
+
 
 class UserCreate(BaseModel):
     name: str
@@ -109,8 +123,13 @@ class AccountCreate(BaseModel):
     class Config:
         orm_mode=True
 
-class AccountOut(AccountCreate):
+class AccountOut(BaseModel):
     id: int
+    currency_info: CurrencyOut
+    bank_info: BankOut
+    input_fields: Dict
+    class Config:
+        orm_mode=True
 
 class BankCreate(BaseModel):
     name: str
@@ -137,6 +156,17 @@ class TradeCreate(BaseModel):
     class Config:
         orm_mode=True
 
+class TradeOrderOut(BaseModel):
+    id: int
+    type: str
+    exchange_rate: float
+    account_in: AccountOut
+    account_out: AccountOut
+    created_at: datetime
+    life_time: float
+    class Config:
+        orm_mode=True
+
 class TradeOut(BaseModel):
     id: int
     owner_id: int
@@ -149,14 +179,29 @@ class TradeOut(BaseModel):
     owner_id: int
     account_in: AccountOut
     account_out: AccountOut
+    order_info: TradeOrderOut
     created_at: datetime
     currency_id: int
     class Config:
         orm_mode=True
 
+class CreateTradeOut(BaseModel):
+    id: int
+    owner_id: int
+    order_id: int
+    type: str
+    amount: float
+    fiat_amount: float
+    exchange_rate: float
+    status: str
+    account_in: AccountOut
+    account_out: AccountOut
+    created_at: datetime
+    currency_id: int
+    class Config:
+        orm_mode=True
 
-
-class OrderOut(BaseModel):
+class OrderBookOut(BaseModel):
     id: int
     owner_id: int
     type: str
@@ -164,19 +209,22 @@ class OrderOut(BaseModel):
     exchange_rate: float
     status: str
     currency_id: int
-    account_in: AccountOut
-    account_out: AccountOut
     bank_id: int
     owner_type: int
     created_at: datetime
     life_time: float
+    available: float 
     class Config:
         orm_mode=True
+
+class OrderOut(OrderBookOut):
+    account_in: AccountOut
+    account_out: AccountOut
 
 class OrderUserOut(OrderOut):
     trades: List[TradeOut]
 
-class OrdersPagination(BaseModel):
+class Pagination(BaseModel):
     page: int
     total_items: int
     total_pages: int
@@ -185,28 +233,21 @@ class OrdersPagination(BaseModel):
     class Config:
         orm_mode=True
 
-class TradesPagination(BaseModel):
-    page: int
-    total_items: int
-    total_pages: int
-    page_size: int
+class OrdersPagination(Pagination):
+    data: List[OrderOut]
+
+class OrdersBookPagination(Pagination):
+    data: List[OrderBookOut]
+
+class TradesPagination(Pagination):
     data: List[TradeOut]
-    class Config:
-        orm_mode=True
 
-class OrdersUserPagination(BaseModel):
-    page: int
-    total_items: int
-    total_pages: int
-    page_size: int
+class OrdersUserPagination(Pagination):
     data: List[OrderUserOut]
-    class Config:
-        orm_mode=True
-
 
 class OrderSeparate(BaseModel):
-    buy: OrdersPagination
-    sell: OrdersPagination
+    buy: OrdersBookPagination
+    sell: OrdersBookPagination
     class Config:
         orm_mode=True
 
@@ -225,7 +266,6 @@ class OrdersOutUser(BaseModel):
     class Config:
         orm_mode=True
     
-
 class Users(BaseModel):
     User: UserOut
     available_balance: float 

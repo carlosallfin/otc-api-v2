@@ -63,7 +63,7 @@ def get_bids(user_id: int,db: Session = Depends(get_db), current_user: int =Depe
         'data':trades}
     return results
 
-@router.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.TradeOut)
+@router.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.CreateTradeOut)
 def create_trade(trade: schemas.TradeCreate, db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):
     if current_user.active != True:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "Not authorized to perform requested action. User status inactive")
