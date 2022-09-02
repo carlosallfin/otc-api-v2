@@ -167,7 +167,7 @@ class TradeOrderOut(BaseModel):
     class Config:
         orm_mode=True
 
-class TradeOut(BaseModel):
+class TradeOrderUserOut(BaseModel):
     id: int
     owner_id: int
     order_id: int
@@ -179,11 +179,13 @@ class TradeOut(BaseModel):
     owner_id: int
     account_in: AccountOut
     account_out: AccountOut
-    order_info: TradeOrderOut
     created_at: datetime
     currency_id: int
     class Config:
         orm_mode=True
+
+class TradeOut(TradeOrderUserOut):
+    order_info: TradeOrderOut
 
 class CreateTradeOut(BaseModel):
     id: int
@@ -222,7 +224,7 @@ class OrderOut(OrderBookOut):
     account_out: AccountOut
 
 class OrderUserOut(OrderOut):
-    trades: List[TradeOut]
+    trades: List[TradeOrderUserOut]
 
 class Pagination(BaseModel):
     page: int
