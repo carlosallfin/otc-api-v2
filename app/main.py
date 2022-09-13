@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from . import models
 from .database import engine
-from .routers import post,user,auth,vote, currency,accounts,banks, order, trade
+from .routers import user, auth, currency, accounts, banks, order, trade
 from .config import settings
 
 # Creates all of our models
