@@ -2,27 +2,11 @@ from typing import List, Optional, Dict
 from pydantic import BaseModel, EmailStr, conint
 from datetime import datetime
 
-class PostBase(BaseModel):
-    title:str
-    content:str
-    published: bool=True
-
-class PostCreate(PostBase):
-    pass
-
 class UserOut(BaseModel):
     id:str
     name: str
     email: EmailStr
     created_at:datetime
-    class Config:
-        orm_mode=True
-
-class Post(PostBase):
-    id: int
-    created_at:datetime
-    owner_id: int
-    owner: UserOut
     class Config:
         orm_mode=True
 
@@ -78,10 +62,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[str] = None
-
-class Vote(BaseModel):
-    post_id: int
-    dir: conint(le=1)
 
 class Role(BaseModel):
     id: int
