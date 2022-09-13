@@ -1,7 +1,5 @@
 import math
-from operator import or_
-from typing import List, Optional
-from fastapi import Body, FastAPI, Response, status, HTTPException, Depends, APIRouter
+from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
 from .. import models,schemas, oauth2
 from ..database import get_db
@@ -11,13 +9,6 @@ router=APIRouter(
     prefix="/orders",
     tags=['Orders']
 )
-
-# SQL get all
-# @router.get("/posts")
-# def get_posts():
-#     posts=cursor.execute("""SELECT * FROM posts""")
-#     posts=cursor.fetchall()
-#     return {'data':posts} 
 
 # ORM get all
 @router.get("/",status_code=status.HTTP_200_OK, response_model=schemas.OrdersBookPagination)
@@ -134,6 +125,7 @@ def get_orders_separate(db: Session = Depends(get_db), current_user: int =Depend
         
 
     return results
+
 #Get all from user
 @router.get("/{user_id}",status_code=status.HTTP_200_OK, response_model=schemas.OrdersUserPagination)
 def get_orders(user_id: int,db: Session = Depends(get_db), current_user: int =Depends(oauth2.get_current_user),

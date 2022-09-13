@@ -1,9 +1,6 @@
-from locale import currency
 from typing import List, Optional, Dict
-from pydantic import BaseModel, EmailStr, conint, conlist
+from pydantic import BaseModel, EmailStr, conint
 from datetime import datetime
-
-from .models import Currency
 
 class PostBase(BaseModel):
     title:str
